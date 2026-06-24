@@ -2198,9 +2198,9 @@ with tab3:
         Target satisfied.<br><br>
 
         Optimal Flow:
-        <b>{optimal_flow*1000:.2f} g/s</b>
+        {optimal_flow*1000:.2f} g/s
 
-        <br><br>
+        
 
         Safety Margin:
         {margin:.2f} °C
@@ -2233,7 +2233,7 @@ with tab3:
         font-size:16px;
         font-weight:600;
     ">
-        Thermal target not achieved.<br><br>
+        Thermal target not achieved.
 
         Peak Battery Temperature:
         {peak_battery:.2f} °C
@@ -3441,7 +3441,7 @@ with tab6:
                     FEATURES=FEATURES,
                     pcm=pcm,
                     temperature_profile=profile,
-                    target_temp=target_temp,
+                    target_temperature=target_temp,
                     look_ahead_seconds=look_ahead_seconds,
                 )
             )
@@ -3854,7 +3854,7 @@ with tab7:
 
                 battery_temp_C=battery_temp,
 
-                target_temp=
+                target_temperature=
                 joint_target_temp,
 
                 flow_weight=
