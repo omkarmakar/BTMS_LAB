@@ -547,10 +547,12 @@ with tab1:
 
     with col1:
 
-        battery_temp = st.selectbox(
+        battery_temp = st.slider(
             "Battery Temperature (°C)",
-            [50, 70, 90],
-            index=0,
+            min_value=50,
+            max_value=90,
+            value=70,
+            step=1,
         )
 
         pcm_name = st.selectbox(
@@ -565,7 +567,7 @@ with tab1:
             min_value=1.0,
             max_value=10.0,
             value=5.0,
-            step=0.5,
+            step=0.1,
         )
 
         t_end = st.slider(
@@ -573,7 +575,7 @@ with tab1:
             min_value=60,
             max_value=900,
             value=900,
-            step=30,
+            step=10,
         )
 
     with col3:
@@ -957,9 +959,12 @@ with tab2:
 
     with c1:
 
-        opt_battery_temp = st.selectbox(
+        opt_battery_temp = st.slider(
             "Battery Temperature (°C)",
-            [50, 70, 90],
+            min_value=50,
+            max_value=90,
+            value=70,
+            step=1,
             key="opt_pcm_temp"
         )
 
@@ -968,13 +973,13 @@ with tab2:
             1.0,
             10.0,
             5.0,
-            0.5,
+            0.1,
             key="opt_pcm_flow"
         )
 
     with c2:
 
-        target_temp = st.number_input(
+        target_temp = st.slider(
             "Target Max Battery Temperature (°C)",
             30.0,
             100.0,
@@ -1165,53 +1170,7 @@ with tab2:
             "tliquidus": tliquidus,
         }
 
-        # r1, r2, r3, r4 = st.columns(4)
-
-        # with r1:
-        #     metric_card(
-        #         "Density",
-        #         f"{density:.1f}",
-        #         "kg/m³"
-        #     )
-
-        # with r2:
-        #     metric_card(
-        #         "Cp",
-        #         f"{cp:.1f}",
-        #         "J/kgK"
-        #     )
-
-        # with r3:
-        #     metric_card(
-        #         "Latent Heat",
-        #         f"{latent/1000:.1f}",
-        #         "kJ/kg"
-        #     )
-
-        # with r4:
-        #     metric_card(
-        #         "Tmelt",
-        #         f"{tmelt-273.15:.1f}",
-        #         "°C"
-        #     )
-
-        # optimal_pcm_df = pd.DataFrame([{
-        #     "density": density,
-        #     "cp": cp,
-        #     "k": k,
-        #     "viscosity": viscosity,
-        #     "latent_heat": latent,
-        #     "tsolidus": tsolidus,
-        #     "tliquidus": tliquidus,
-        #     "tmelt_C": tmelt - 273.15,
-        # }])
-
-        # dataframe_download_button(
-        #     optimal_pcm_df,
-        #     "⬇ Download Optimal PCM",
-        #     "optimal_pcm.csv",
-        # )
-
+        
         optimized_pcm = st.session_state.best_pcm
 
         time_vector = np.linspace(
@@ -1400,30 +1359,7 @@ with tab2:
 
             box_class = "warn-box"
 
-        # st.markdown(
-        #     f"""
-        #     <div class="{box_class}">
-        #     <b>Optimal PCM</b>:
-        #     {peak_opt:.2f} °C
-
-        #     &nbsp;&nbsp;|&nbsp;&nbsp;
-
-        #     <b>{closest_name}</b>:
-        #     {peak_std:.2f} °C
-
-        #     &nbsp;&nbsp;|&nbsp;&nbsp;
-
-        #     Improvement:
-        #     <b>{improvement:.2f} °C</b>
-
-        #     &nbsp;&nbsp;|&nbsp;&nbsp;
-
-        #     Target:
-        #     <b>{target_temp:.2f} °C</b>
-        #     </div>
-        #     """,
-        #     unsafe_allow_html=True
-        # )
+       
         m1, m2, m3 = st.columns(3)
 
         with m1:
@@ -1548,57 +1484,57 @@ with tab2:
 
         plt.close(fig_cmp)
 
-        # row1 = st.columns(4)
+        row1 = st.columns(4)
 
-        # with row1[0]:
-        #     st.metric(
-        #         "Density",
-        #         f"{density:.1f} kg/m³"
-        #     )
+        with row1[0]:
+            st.metric(
+                "Density",
+                f"{density:.1f} kg/m³"
+            )
 
-        # with row1[1]:
-        #     st.metric(
-        #         "Cp",
-        #         f"{cp:.0f} J/kgK"
-        #     )
+        with row1[1]:
+            st.metric(
+                "Cp",
+                f"{cp:.0f} J/kgK"
+            )
 
-        # with row1[2]:
-        #     st.metric(
-        #         "Conductivity",
-        #         f"{k:.3f} W/mK"
-        #     )
+        with row1[2]:
+            st.metric(
+                "Conductivity",
+                f"{k:.3f} W/mK"
+            )
 
-        # with row1[3]:
-        #     st.metric(
-        #         "Latent Heat",
-        #         f"{latent/1000:.1f} kJ/kg"
-        #     )
+        with row1[3]:
+            st.metric(
+                "Latent Heat",
+                f"{latent/1000:.1f} kJ/kg"
+            )
 
-        # row2 = st.columns(4)
+        row2 = st.columns(4)
 
-        # with row2[0]:
-        #     st.metric(
-        #         "Tmelt",
-        #         f"{tmelt-273.15:.2f} °C"
-        #     )
+        with row2[0]:
+            st.metric(
+                "Tmelt",
+                f"{tmelt-273.15:.2f} °C"
+            )
 
-        # with row2[1]:
-        #     st.metric(
-        #         "Melt Range",
-        #         f"{melt_range:.2f} K"
-        #     )
+        with row2[1]:
+            st.metric(
+                "Melt Range",
+                f"{melt_range:.2f} K"
+            )
 
-        # with row2[2]:
-        #     st.metric(
-        #         "Viscosity",
-        #         f"{viscosity:.4f}"
-        #     )
+        with row2[2]:
+            st.metric(
+                "Viscosity",
+                f"{viscosity:.4f}"
+            )
 
-        # with row2[3]:
-        #     st.metric(
-        #         "Peak Battery Temp",
-        #         f"{peak_battery:.2f} °C"
-        #     )
+        with row2[3]:
+            st.metric(
+                "Peak Battery Temp",
+                f"{peak_battery:.2f} °C"
+            )
         # comparison_rows = []
         # for pcm_name, pcm in PCM_DATABASE.items():
 
@@ -1733,71 +1669,71 @@ with tab2:
         #         use_container_width=True,
         #         key="optimal_pcm_material_space"
 
-        #     )
-        # st.markdown(
-        #         "## Optimized PCM Thermal Response"
-        #     )
-        # fig, axes = plt.subplots(
-        #         2,
-        #         2,
-        #         figsize=(14,8)
-        #     )
-        # plots = [
+            # )
+        st.markdown(
+                "## Optimized PCM Thermal Response"
+            )
+        fig, axes = plt.subplots(
+                2,
+                2,
+                figsize=(14,8)
+            )
+        plots = [
 
-        #         (
-        #             axes[0,0],
-        #             battery_series,
-        #             "Battery Temperature (°C)",
-        #             "#d62728"
-        #         ),
+                (
+                    axes[0,0],
+                    battery_series,
+                    "Battery Temperature (°C)",
+                    "#d62728"
+                ),
 
-        #         (
-        #             axes[0,1],
-        #             pcm_series,
-        #             "PCM Temperature (°C)",
-        #             "#1f77b4"
-        #         ),
+                (
+                    axes[0,1],
+                    pcm_series,
+                    "PCM Temperature (°C)",
+                    "#1f77b4"
+                ),
 
-        #         (
-        #             axes[1,0],
-        #             lf_series,
-        #             "Liquid Fraction",
-        #             "#2ca02c"
-        #         ),
+                (
+                    axes[1,0],
+                    lf_series,
+                    "Liquid Fraction",
+                    "#2ca02c"
+                ),
 
-        #         (
-        #             axes[1,1],
-        #             outlet_series,
-        #             "Outlet Temperature (°C)",
-        #             "#ff7f0e"
-        #         ),
-        #     ]
+                (
+                    axes[1,1],
+                    outlet_series,
+                    "Outlet Temperature (°C)",
+                    "#ff7f0e"
+                ),
+            ]
 
-        # for ax, data, ylabel, color in plots:
+        for ax, data, ylabel, color in plots:
 
-        #         ax.plot(
-        #             time_vector,
-        #             data,
-        #             lw=2,
-        #             color=color
-        #         )
+                ax.plot(
+                    time_vector,
+                    data,
+                    lw=2,
+                    color=color
+                )
 
-        #         ax.fill_between(
-        #             time_vector,
-        #             data,
-        #             alpha=0.10,
-        #             color=color
-        #         )
+                ax.fill_between(
+                    time_vector,
+                    data,
+                    alpha=0.10,
+                    color=color
+                )
 
-        #         ax.set_xlabel("Time (s)")
-        #         ax.set_ylabel(ylabel)
+                ax.set_xlabel("Time (s)")
+                ax.set_ylabel(ylabel)
 
-        #         ax.grid(
-        #             alpha=0.3
-        #         )
+                ax.grid(
+                    alpha=0.3
+                )
 
-        # plt.tight_layout()
-        # st.pyplot(fig)
+        plt.tight_layout()
+        st.pyplot(fig)
 
 
 # =============================================================================
@@ -1815,9 +1751,12 @@ with tab3:
 
     with c1:
 
-        flow_battery_temp = st.selectbox(
+        flow_battery_temp = st.slider(
             "Battery Temperature (°C)",
-            [50, 70, 90],
+            min_value=50,
+            max_value=90,
+            value=70,
+            step=1,
             key="flow_temp"
         )
 
@@ -1829,11 +1768,11 @@ with tab3:
 
     with c2:
 
-        target_temp = st.number_input(
+        target_temp = st.slider(
             "Target Max Temperature (°C)",
             30.0,
             100.0,
-            45.0,
+            1.0,
             key="flow_target_temp"
         )
 
@@ -2261,9 +2200,12 @@ with tab4:
 
     with cmp_col1:
 
-        cmp_temp = st.selectbox(
+        cmp_temp = st.slider(
             "Battery Temperature (°C)",
-            [50, 70, 90],
+            min_value=50,
+            max_value=90,
+            value=70,
+            step=1,
             key="cmp_temp"
         )
 
@@ -3320,11 +3262,11 @@ with tab6:
             key="adaptive_pcm"
         )
 
-        target_temp = st.number_input(
+        target_temp = st.slider(
             "Target Maximum Battery Temperature (°C)",
             min_value=30.0,
             max_value=120.0,
-            value=60.0,
+            value=75.0,
             step=1.0,
             key="adaptive_target_temp"
         )
@@ -3770,9 +3712,12 @@ with tab7:
 
     with col1:
 
-        joint_battery_temp = st.selectbox(
+        joint_battery_temp = st.slider(
             "Battery Temperature (°C)",
-            [50, 70, 90],
+            min_value=50,
+            max_value=90,
+            value=70,
+            step=1,
             key="joint_battery_temp"
         )
 
@@ -4217,9 +4162,12 @@ with tab8:
 
     with c1:
 
-        screening_temp = st.selectbox(
+        screening_temp = st.slider(
             "Battery Temperature (°C)",
-            [50, 70, 90],
+            min_value=50,
+            max_value=90,
+            value=70,
+            step=1,
             key="screening_temp"
         )
 
@@ -4228,23 +4176,18 @@ with tab8:
             1.0,
             10.0,
             5.0,
-            0.5,
+            0.1,
             key="screening_flow"
         )
 
     with c2:
 
-        n_candidates = st.selectbox(
+        n_candidates = st.slider(
             "Candidates",
-            [
-                1000,
-                5000,
-                10000,
-                25000,
-                50000,
-                100000,
-            ],
-            index=2,
+            min_value=1000,
+            max_value=100000,
+            value=10000,
+            step=1000,
         )
 
         top_n = st.slider(
@@ -4265,15 +4208,12 @@ with tab8:
             30,
         )
 
-        batch_size = st.selectbox(
+        batch_size = st.slider(
             "Batch Size",
-            [
-                1024,
-                2048,
-                4096,
-                8192,
-            ],
-            index=2,
+            min_value=1024,
+            max_value=8192,
+            value=4096,
+            step=1024,
         )
 
     with c4:
