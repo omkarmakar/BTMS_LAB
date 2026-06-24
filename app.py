@@ -105,29 +105,36 @@ st.markdown("""
 }
 
 .metric-card{
-    background:#f0f6ff;
-    border-radius:10px;
-    padding:16px 20px;
-    border-left:4px solid #1f4e79;
-    margin-bottom:8px;
+    background:rgba(255,255,255,0.03);
+    backdrop-filter:blur(8px);
+
+    border:1px solid rgba(255,255,255,0.08);
+
+    border-radius:14px;
+
+    padding:18px;
+
+    border-left:5px solid #1f4e79;
+
+    margin-bottom:12px;
 }
 
 .metric-label{
-    font-size:.78rem;
-    color:#666;
+    font-size:0.8rem;
+    letter-spacing:0.06em;
     text-transform:uppercase;
-    letter-spacing:.05em;
+    opacity:0.75;
 }
 
 .metric-value{
-    font-size:1.7rem;
+    font-size:2rem;
     font-weight:700;
-    color:#1f4e79;
 }
 
 .metric-unit{
-    font-size:.85rem;
-    color:#888;
+    font-size:1rem;
+    font-weight:500;
+    opacity:0.8;
 }
 
 .warn-box{
