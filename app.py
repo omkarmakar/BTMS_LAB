@@ -691,9 +691,8 @@ with tab1:
         use_container_width=True,
     ):
 
-        battery_temp = clamp_battery_temp(
-            float(battery_temp)
-        )
+        battery_temp = float(battery_temp)
+        
 
         mass_flow_rate = (
             mass_flow_gs / 1000.0
@@ -1027,9 +1026,8 @@ with tab2:
             900,
         ])
 
-        battery_temp = clamp_battery_temp(
-            float(opt_battery_temp)
-        )
+        battery_temp = float(opt_battery_temp)
+        
 
         flow_rate = (
             opt_flow_gs / 1000
@@ -1795,9 +1793,8 @@ with tab3:
             flow_pcm
         ]
 
-        battery_temp = clamp_battery_temp(
-            flow_battery_temp
-        )
+        battery_temp = flow_battery_temp
+        
 
         eval_times = np.array([
             150,
@@ -2226,9 +2223,8 @@ with tab4:
         use_container_width=True,
     ):
 
-        battery_temp = clamp_battery_temp(
-            cmp_temp
-        )
+        battery_temp = cmp_temp
+        
 
         flow_rate = (
             cmp_flow / 1000
@@ -3776,9 +3772,8 @@ with tab7:
         use_container_width=True,
     ):
 
-        battery_temp = clamp_battery_temp(
-            float(joint_battery_temp)
-        )
+        battery_temp = float(joint_battery_temp)
+        
 
         progress_placeholder = st.empty()
 
@@ -4249,9 +4244,7 @@ with tab8:
         use_container_width=True,
     ):
 
-        battery_temp = clamp_battery_temp(
-            float(screening_temp)
-        )
+        battery_temp = float(screening_temp)
 
         mass_flow_rate = (
             screening_flow / 1000.0
