@@ -73,7 +73,7 @@ def build_validation_matrix(
             row["Tliquidus_K"],
 
             row["Mass_Flow_Rate_kg_s"],
-            row["Initial_PCM_Temperature_C"],
+            row["Battery Patch Temperature in C"],
 
             row["Time_s"]
 
@@ -312,7 +312,7 @@ def filter_case(
     if battery_temp is not None:
         df_case = df_case[
             df_case[
-                "Initial_PCM_Temperature_C"
+                "Initial_Battery_Patch_Temp_C"
             ] == battery_temp
         ]
 

@@ -37,6 +37,11 @@ BATTERY["power"] = (
 )
 
 T_INLET_K = 293.15
+T_PCM_INITIAL_C  = 20.0    # PCM always starts at 20 °C (293.15 K) — fixed in all CFD cases
+T_PCM_INITIAL_K  = T_PCM_INITIAL_C + 273.15
+
+TRAINING_BATTERY_TEMP_MIN = 50.0
+TRAINING_BATTERY_TEMP_MAX = 90.0
 
 TRAINING_BATTERY_TEMPS_C = [
     50.0,
@@ -71,18 +76,19 @@ def clamp_battery_temp(
     battery_temp_c,
 ):
     """
-    Restrict temperature
-    to training domain.
+    Clamp to training domain
+    [50, 90] °C (continuous).
 
-    50
-    70
-    90
+    Model was trained at 50 / 70 / 90
+    but generalises to any value in
+    this range.
     """
 
-    return min(
-        TRAINING_BATTERY_TEMPS_C,
-        key=lambda x: abs(
-            x - battery_temp_c
+    return float(
+        np.clip(
+            battery_temp_c,
+            TRAINING_BATTERY_TEMP_MIN,
+            TRAINING_BATTERY_TEMP_MAX,
         )
     )
 
@@ -107,6 +113,14 @@ def build_feature_row(
 ):
     """
     Build single 20-feature vector.
+
+    battery_patch_temp_C : initial battery patch
+        temperature in °C; any value in [50, 90].
+        Maps to feature Initial_Battery_Patch_Temp_C.
+
+    PCM initial temperature is always 20 °C (293.15 K)
+    — fixed across all CFD cases, not an input feature.
+    See constant T_PCM_INITIAL_C / T_PCM_INITIAL_K.
     """
 
     Tm_K = (
@@ -119,14 +133,11 @@ def build_feature_row(
         - tsolidus_K
     )
 
-    T_bat_K = (
-        battery_patch_temp_C
-        + 273.15
-    )
-
+    # Ste = Cp*(T_batt_patch - Tm) / L
+    # driving ΔT is battery patch vs PCM melt point
     stefan = (
         pcm_cp
-        * (T_bat_K - Tm_K)
+        * (battery_patch_temp_C + 273.15 - Tm_K)
         / pcm_latent_heat
     )
 
@@ -140,77 +151,32 @@ def build_feature_row(
         * pcm_k
     )
 
-    row = np.zeros(
-        len(FEATURES)
-    )
+    row = np.zeros(len(FEATURES))
 
-    row[FIDX["Density"]] = pcm_density
-    row[FIDX["Specific_Heat"]] = pcm_cp
-    row[FIDX["Thermal_Conductivity"]] = pcm_k
-    row[FIDX["Viscosity"]] = pcm_viscosity
-    row[FIDX["Latent_Heat"]] = pcm_latent_heat
-    row[FIDX["Tm_K"]] = Tm_K
-    row[FIDX["Melt_Range_K"]] = melt_range
+    row[FIDX["Density"]]               = pcm_density
+    row[FIDX["Specific_Heat"]]         = pcm_cp
+    row[FIDX["Thermal_Conductivity"]]  = pcm_k
+    row[FIDX["Viscosity"]]             = pcm_viscosity
+    row[FIDX["Latent_Heat"]]           = pcm_latent_heat
+    row[FIDX["Tm_K"]]                  = Tm_K
+    row[FIDX["Melt_Range_K"]]          = melt_range
 
-    row[FIDX["Battery_Density"]] = BATTERY["density"]
-    row[FIDX["Battery_Cp"]] = BATTERY["cp"]
-    row[FIDX["Battery_k"]] = BATTERY["k"]
+    row[FIDX["Battery_Density"]]              = BATTERY["density"]
+    row[FIDX["Battery_Cp"]]                   = BATTERY["cp"]
+    row[FIDX["Battery_k"]]                    = BATTERY["k"]
+    row[FIDX["Battery_HeatGeneration_W_m3"]]  = BATTERY["heat_generation"]
 
-    row[
-        FIDX[
-            "Battery_HeatGeneration_W_m3"
-        ]
-    ] = BATTERY["heat_generation"]
+    row[FIDX["Mass_Flow_Rate_kg_s"]]          = mass_flow_rate
 
-    row[
-        FIDX[
-            "Mass_Flow_Rate_kg_s"
-        ]
-    ] = mass_flow_rate
+    row[FIDX["Initial_Battery_Patch_Temp_C"]] = battery_patch_temp_C
 
-    row[
-        FIDX[
-            "Initial_PCM_Temperature_C"
-        ]
-    ] = battery_patch_temp_C
-
-    row[FIDX["Time_s"]] = time_s
-
-    row[
-        FIDX[
-            "Stefan_Number"
-        ]
-    ] = stefan
-
-    row[
-        FIDX[
-            "PCM_ThermalStorage"
-        ]
-    ] = pcm_storage
-
-    row[
-        FIDX[
-            "Battery_ThermalCapacity_J_K"
-        ]
-    ] = BATTERY["thermal_capacity"]
-
-    row[
-        FIDX[
-            "Tsolidus_K"
-        ]
-    ] = tsolidus_K
-
-    row[
-        FIDX[
-            "Tliquidus_K"
-        ]
-    ] = tliquidus_K
-
-    row[
-        FIDX[
-            "Flow_PCM_Interaction"
-        ]
-    ] = flow_pcm_interaction
+    row[FIDX["Time_s"]]                       = time_s
+    row[FIDX["Stefan_Number"]]                = stefan
+    row[FIDX["PCM_ThermalStorage"]]           = pcm_storage
+    row[FIDX["Battery_ThermalCapacity_J_K"]]  = BATTERY["thermal_capacity"]
+    row[FIDX["Tsolidus_K"]]                   = tsolidus_K
+    row[FIDX["Tliquidus_K"]]                  = tliquidus_K
+    row[FIDX["Flow_PCM_Interaction"]]         = flow_pcm_interaction
 
     return row
 

@@ -184,7 +184,7 @@ def build_screening_matrix(
     X[:, FIDX["Mass_Flow_Rate_kg_s"]] = \
         mass_flow_rate
 
-    X[:, FIDX["Initial_PCM_Temperature_C"]] = \
+    X[:, FIDX["Initial_Battery_Patch_Temp_C"]] = \
         battery_temp_C
 
     X[:, FIDX["Time_s"]] = eval_time_s

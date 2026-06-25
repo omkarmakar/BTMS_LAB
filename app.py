@@ -24,6 +24,10 @@ from sklearn.metrics import (
 from utils.inference import (
     BATTERY,
     FLOW_LIMITS,
+    TRAINING_BATTERY_TEMP_MIN,
+    TRAINING_BATTERY_TEMP_MAX,
+    T_PCM_INITIAL_C,
+    T_PCM_INITIAL_K,
     clamp_battery_temp,
     run_timeseries,
     build_feature_row,
@@ -42,12 +46,7 @@ from utils.model_loader import (
     load_model_artifacts,
 )
 
-from utils.inference import (
-    BATTERY,
-    FLOW_LIMITS,
-    clamp_battery_temp,
-    run_timeseries,
-)
+
 
 from utils.validation import (
     load_validation_database,
@@ -361,6 +360,40 @@ pcm_df, PCM_DATABASE = (
     load_pcm_database()
 )
 
+FIDX = {
+    f: i
+    for i, f in enumerate(FEATURES)
+}
+
+# ── V8 sanity check ───────────────────────────────────────────────────────
+_EXPECTED_FEATURES = {
+    "Initial_Battery_Patch_Temp_C",
+}
+_LEGACY_FEATURES = {
+    "Initial_PCM_Temperature_C",
+}
+
+_missing  = _EXPECTED_FEATURES - set(FEATURES)
+_legacy   = _LEGACY_FEATURES   & set(FEATURES)
+
+if _missing or _legacy:
+    st.error("⛔ Model artifact mismatch detected.")
+    if _legacy:
+        st.write(
+            "**`feature_columns.pkl` is from a V7 run** — "
+            "it still contains `Initial_PCM_Temperature_C`. "
+            "Re-run Notebooks 1–5 on Kaggle with V8 and download "
+            "all four files together: "
+            "`best_pinn.pth`, `input_scaler.pkl`, "
+            "`output_scaler.pkl`, `feature_columns.pkl`."
+        )
+    if _missing:
+        st.write(
+            f"Missing expected features: `{_missing}`"
+        )
+    st.stop()
+# ─────────────────────────────────────────────────────────────────────────
+
 # =============================================================================
 # Sidebar
 # =============================================================================
@@ -396,6 +429,10 @@ with st.sidebar:
 
     st.write(
         f"PCMs Loaded: {len(PCM_DATABASE)}"
+    )
+
+    st.write(
+        f"PCM Initial Temp: {T_PCM_INITIAL_C} °C (fixed)"
     )
 
     if os.path.exists(
@@ -548,9 +585,9 @@ with tab1:
     with col1:
 
         battery_temp = st.slider(
-            "Battery Temperature (°C)",
-            min_value=50,
-            max_value=90,
+            "Initial Battery Patch Temperature (°C)",
+            min_value=int(TRAINING_BATTERY_TEMP_MIN),
+            max_value=int(TRAINING_BATTERY_TEMP_MAX),
             value=70,
             step=1,
         )
@@ -691,8 +728,7 @@ with tab1:
         use_container_width=True,
     ):
 
-        battery_temp = float(battery_temp)
-        
+        battery_temp = clamp_battery_temp(float(battery_temp))
 
         mass_flow_rate = (
             mass_flow_gs / 1000.0
@@ -971,9 +1007,9 @@ with tab2:
     with c1:
 
         opt_battery_temp = st.slider(
-            "Battery Temperature (°C)",
-            min_value=50,
-            max_value=90,
+            "Initial Battery Patch Temperature (°C)",
+            min_value=int(TRAINING_BATTERY_TEMP_MIN),
+            max_value=int(TRAINING_BATTERY_TEMP_MAX),
             value=70,
             step=1,
             key="opt_pcm_temp"
@@ -1038,8 +1074,7 @@ with tab2:
             900,
         ])
 
-        battery_temp = float(opt_battery_temp)
-        
+        battery_temp = clamp_battery_temp(float(opt_battery_temp))
 
         flow_rate = (
             opt_flow_gs / 1000
@@ -1762,9 +1797,9 @@ with tab3:
     with c1:
 
         flow_battery_temp = st.slider(
-            "Battery Temperature (°C)",
-            min_value=50,
-            max_value=90,
+            "Initial Battery Patch Temperature (°C)",
+            min_value=int(TRAINING_BATTERY_TEMP_MIN),
+            max_value=int(TRAINING_BATTERY_TEMP_MAX),
             value=70,
             step=1,
             key="flow_temp"
@@ -1805,8 +1840,7 @@ with tab3:
             flow_pcm
         ]
 
-        battery_temp = flow_battery_temp
-        
+        battery_temp = clamp_battery_temp(float(flow_battery_temp))
 
         eval_times = np.array([
             150,
@@ -2210,9 +2244,9 @@ with tab4:
     with cmp_col1:
 
         cmp_temp = st.slider(
-            "Battery Temperature (°C)",
-            min_value=50,
-            max_value=90,
+            "Initial Battery Patch Temperature (°C)",
+            min_value=int(TRAINING_BATTERY_TEMP_MIN),
+            max_value=int(TRAINING_BATTERY_TEMP_MAX),
             value=70,
             step=1,
             key="cmp_temp"
@@ -2235,8 +2269,7 @@ with tab4:
         use_container_width=True,
     ):
 
-        battery_temp = cmp_temp
-        
+        battery_temp = clamp_battery_temp(float(cmp_temp))
 
         flow_rate = (
             cmp_flow / 1000
@@ -2356,14 +2389,38 @@ with tab4:
         )
 
         for ax in axes.flatten():
-
             ax.grid(True)
 
-            ax.legend(
-                fontsize=8
-            )
+        # Collect legend entries only once
+        handles, labels = axes[0, 0].get_legend_handles_labels()
 
-        plt.tight_layout()
+        # Remove duplicate labels (especially Target Limit)
+        by_label = dict(zip(labels, handles))
+
+        # fig.legend(
+        #     by_label.values(),
+        #     by_label.keys(),
+        #     loc="center left",
+        #     bbox_to_anchor=(1.02, 0.5),
+        #     fontsize=9,
+        #     frameon=True,
+        #     title="PCM"
+        # )
+        fig.legend(
+            by_label.values(),
+            by_label.keys(),
+            loc="center left",
+            bbox_to_anchor=(0.98, 0.5),   # instead of 1.02
+            fontsize=8,
+            title="PCM",
+            frameon=True
+        )
+
+        plt.tight_layout(rect=[0, 0, 0.93, 1])   # instead of 0.82
+
+        # plt.tight_layout(rect=[0, 0, 0.82, 1])
+
+        # plt.tight_layout()
 
         st.pyplot(fig)
 
@@ -2585,7 +2642,7 @@ with tab5:
         with filter_col2:
 
             if (
-                "Initial_PCM_Temperature_C"
+                "Initial_Battery_Patch_Temp_C"
                 in validation_db.columns
             ):
 
@@ -2594,7 +2651,7 @@ with tab5:
                     +
                     sorted(
                         validation_db[
-                            "Initial_PCM_Temperature_C"
+                            "Initial_Battery_Patch_Temp_C"
                         ]
                         .unique()
                         .tolist()
@@ -2602,7 +2659,7 @@ with tab5:
                 )
 
                 selected_temp = st.selectbox(
-                    "Temperature",
+                    "Battery Patch Temperature",
                     temp_options,
                 )
 
@@ -3132,7 +3189,7 @@ with tab5:
 
                 df_case = df_case[
                     df_case[
-                        "Initial_PCM_Temperature_C"
+                        "Initial_Battery_Patch_Temp_C"
                     ] == selected_temp
                 ]
 
@@ -3721,9 +3778,9 @@ with tab7:
     with col1:
 
         joint_battery_temp = st.slider(
-            "Battery Temperature (°C)",
-            min_value=50,
-            max_value=90,
+            "Initial Battery Patch Temperature (°C)",
+            min_value=int(TRAINING_BATTERY_TEMP_MIN),
+            max_value=int(TRAINING_BATTERY_TEMP_MAX),
             value=70,
             step=1,
             key="joint_battery_temp"
@@ -3784,8 +3841,7 @@ with tab7:
         use_container_width=True,
     ):
 
-        battery_temp = float(joint_battery_temp)
-        
+        battery_temp = clamp_battery_temp(float(joint_battery_temp))
 
         progress_placeholder = st.empty()
 
@@ -4170,9 +4226,9 @@ with tab8:
     with c1:
 
         screening_temp = st.slider(
-            "Battery Temperature (°C)",
-            min_value=50,
-            max_value=90,
+            "Initial Battery Patch Temperature (°C)",
+            min_value=int(TRAINING_BATTERY_TEMP_MIN),
+            max_value=int(TRAINING_BATTERY_TEMP_MAX),
             value=70,
             step=1,
             key="screening_temp"
