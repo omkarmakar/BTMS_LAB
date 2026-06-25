@@ -2329,7 +2329,7 @@ with tab4:
             )
 
             axes[0,0].axhline(
-                60,
+                cmp_temp,
                 color="black",
                 linestyle="--",
                 linewidth=2,
