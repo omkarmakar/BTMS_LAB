@@ -761,11 +761,16 @@ with tab1:
             * 100
         )
 
+        final_battery = (
+            result["battery_temp"][-1]
+            - 273.15
+        )
+
         st.markdown(
             "### Key Results"
         )
 
-        m1, m2, m3, m4 = st.columns(4)
+        m1, m2, m3, m4, m5 = st.columns(5)
 
         with m1:
             metric_card(
@@ -793,6 +798,13 @@ with tab1:
                 "Final Liquid Fraction",
                 f"{final_lf:.1f}",
                 "%"
+            )
+
+        with m5:
+            metric_card(
+                "Final Battery Temp",
+                f"{final_battery:.2f}",
+                "°C"
             )
 
         # ---------------------------------------------------------------------
