@@ -185,7 +185,7 @@ DATA_DIR = "data"
 
 PCM_DATABASE_PATH = os.path.join(
     DATA_DIR,"materials",
-    "pcm_database.csv"
+    "pcm_dB_old.csv"
 )
 
 VALIDATION_DB_PATH = os.path.join(
